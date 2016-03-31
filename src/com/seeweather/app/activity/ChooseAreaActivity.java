@@ -7,6 +7,7 @@ import java.util.List;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -38,6 +39,7 @@ public class ChooseAreaActivity extends Activity {
 	private TextView tvTitle;// 标题
 	private ListView list;// 列表
 	private EditText etInput;// 输入区域
+	private String cityId ;
 
 	private Button btSearch;
 	private ArrayAdapter<String> adapter;
@@ -59,18 +61,12 @@ public class ChooseAreaActivity extends Activity {
 		adapter = new ArrayAdapter<String>(ChooseAreaActivity.this,
 				android.R.layout.simple_list_item_1, lists);
 		listView.setAdapter(adapter);// 通过ListView对象的setAdapter方法设置填充器对象
-		// list.setOnItemClickListener(new OnItemClickListener() {// 设置列表点击事件监听器
-		//
-		// @Override
-		// public void onItemClick(AdapterView<?> parent, View view,
-		// int position, long id) {
-		//
-		// }
-		// });
+
 		btSearch.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				searchArea = etInput.getText().toString();
+				
 				if (!TextUtils.isEmpty(searchArea)) {
 					List<Area> list2 = seeWeatherDB.loadAreasFromDB(searchArea);
 					if(list2.size() == 0){
@@ -80,14 +76,27 @@ public class ChooseAreaActivity extends Activity {
 							e.printStackTrace();
 						}
 						queryAreaFormServer(searchArea);
-						list2 = seeWeatherDB.loadAreasFromDB(searchArea);
+						
 					}
+					list2 = seeWeatherDB.loadAreasFromDB(searchArea);
+					cityId = seeWeatherDB.getCityIdFromDb(searchArea);
 					lists.clear();
 					for(Area area : list2){
 						lists.add(area.toString());						
 					}						
 					adapter.notifyDataSetChanged();
 					listView.setSelection(0);
+					listView.setOnItemClickListener(new OnItemClickListener() {
+
+						@Override
+						public void onItemClick(AdapterView<?> parent,
+								View view, int position, long id) {
+							Intent intent = new Intent(ChooseAreaActivity.this,WeatherActivity.class);
+							intent.putExtra("cityId", cityId);
+							intent.putExtra("cityName", searchArea);
+							startActivity(intent);
+						}
+					});
 				} else {
 					Toast.makeText(ChooseAreaActivity.this, "查询失败",
 							Toast.LENGTH_SHORT).show();

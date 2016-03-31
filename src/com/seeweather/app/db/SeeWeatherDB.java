@@ -68,4 +68,16 @@ public class SeeWeatherDB {
 		}
 		return areaList;
 	}
+	
+	/**
+	 * 根据城市名称获取城市id
+	 */
+	public String getCityIdFromDb(String cityName){
+		String cityId = null ;
+		Cursor cursor = db.query("Area", null, "name_cn=?", new String[]{cityName}, null, null, null);
+		while(cursor.moveToNext()){
+			cityId = cursor.getString(cursor.getColumnIndex("area_id"));			
+		}
+		return cityId;
+	}
 }
