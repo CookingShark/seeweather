@@ -2,11 +2,7 @@ package com.seeweather.app.db;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import com.seeweather.app.model.City;
-import com.seeweather.app.model.County;
-import com.seeweather.app.model.Province;
-
+import com.seeweather.app.model.Area;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -20,7 +16,6 @@ public class SeeWeatherDB {
 
 	/**
 	 * 将构造方法私有化
-	 * 
 	 * @param context
 	 */
 	private SeeWeatherDB(Context context) {
@@ -31,7 +26,6 @@ public class SeeWeatherDB {
 
 	/**
 	 * 获取SeeWeatherDB实例
-	 * 
 	 * @return
 	 */
 	public static SeeWeatherDB getInstance(Context context) {
@@ -42,105 +36,36 @@ public class SeeWeatherDB {
 	}
 
 	/**
-	 * 将province实例保存至数据库的Province表中
+	 * 将area实例保存至数据库中
 	 */
-	public void saveProvince(Province province) {
-		if (province != null) {
+	public void saveArea(Area area) {
+		if (area != null) {
 			ContentValues values = new ContentValues();
-			values.put("province_name", province.getProvinceName());
-			values.put("province_code", province.getProvinceCode());
-			db.insert("Province", null, values);
+			values.put("province_cn", area.getProvinceName());
+			values.put("district_cn", area.getDistrictName());
+			values.put("name_cn", area.getAreaName());
+			values.put("name_en", area.getNameEn());
+			values.put("area_id", area.getAreaId());
+			db.insert("Area", null, values);
 		}
 	}
 
 	/**
-	 * 从数据库中读取所有省份信息列表
+	 * 根据输入的区域名称从数据库中读取相匹配的信息列表
 	 */
-	public List<Province> loadProvincese() {
-		List<Province> provinceList = new ArrayList<Province>();
-		Cursor cursor = db
-				.query("Province", null, null, null, null, null, null);
-		if (cursor.moveToFirst()) {
-			while (cursor.moveToNext()) {
-				Province province = new Province();
-				province.setId(cursor.getInt(cursor
-						.getColumnIndex("province_id")));
-				province.setProvinceName(cursor.getString(cursor
-						.getColumnIndex("province_name")));
-				province.setProvinceCode(cursor.getString(cursor
-						.getColumnIndex("province_code")));
-				provinceList.add(province);
-			}
+	public List<Area> loadAreasFromDB(String areaName) {
+		List<Area> areaList = new ArrayList<Area>();
+		Cursor cursor = db.query("Area", null, "name_cn=?", new String[]{areaName}, null, null, null);
+		while(cursor.moveToNext()){
+			Area area = new Area();
+			area.setId(cursor.getInt(cursor.getColumnIndex("id")));
+			area.setProvinceName(cursor.getString(cursor.getColumnIndex("province_cn")));
+			area.setDistrictName(cursor.getString(cursor.getColumnIndex("district_cn")));
+			area.setAreaName(cursor.getString(cursor.getColumnIndex("name_cn")));
+			area.setNameEn(cursor.getString(cursor.getColumnIndex("name_en")));
+			area.setAreaId(cursor.getString(cursor.getColumnIndex("area_id")));			
+			areaList.add(area);
 		}
-		return provinceList;
-	}
-
-	/**
-	 * 将City实例保存至数据库中的City表中
-	 */
-	public void saveCity(City city) {
-		if (city != null) {
-			ContentValues values = new ContentValues();
-			values.put("city_name", city.getCityName());
-			values.put("city_code", city.getCityCode());
-			values.put("province_id", city.getProvinceId());
-			db.insert("City", null, values);
-		}
-	}
-
-	/**
-	 * 从数据库中获取指定ProvinceId下的City列表
-	 */
-	public List<City> loadCities(int provinceId) {
-		List<City> citiesList = new ArrayList<City>();
-		Cursor cursor = db.query("City", null, "province_id=?",
-				new String[] { String.valueOf(provinceId) }, null, null, null);
-		if (cursor.moveToFirst()) {
-			while (cursor.moveToNext()) {
-				City city = new City();
-				city.setId(cursor.getInt(cursor.getColumnIndex("id")));
-				city.setCityName(cursor.getString(cursor
-						.getColumnIndex("city_name")));
-				city.setCityCode(cursor.getString(cursor
-						.getColumnIndex("city_code")));
-				city.setProvinceId(cursor.getInt(cursor
-						.getColumnIndex("province_id")));
-				citiesList.add(city);
-			}
-		}
-		return citiesList;
-	}
-
-	/**
-	 * 将County实例保存至数据库中的County表中
-	 */
-	public void saveCounty(County county) {
-		if (county != null) {
-			ContentValues values = new ContentValues();
-			values.put("county_name", county.getCountyName());
-			values.put("county_code", county.getCountyCode());
-			values.put("city_id", county.getCityId());
-			db.insert("County", null, values);
-		}
-	}
-
-	/**
-	 * 根据CityId获取所有县、区列表
-	 */
-	public List<County> loadCouties(int cityId) {
-		List<County> countyList = new ArrayList<County>();
-		Cursor cursor = db.query("County", null, "city_id=?",
-				new String[] { String.valueOf(cityId) }, null, null, null);
-		if(cursor.moveToFirst()){
-			while(cursor.moveToNext()){
-				County county = new County();
-				county.setId(cursor.getInt(cursor.getColumnIndex("id")));
-				county.setCountyName((cursor.getString(cursor.getColumnIndex("county_name"))));
-				county.setCountyCode(cursor.getString(cursor.getColumnIndex("county_code")));
-				county.setCityId(cursor.getInt(cursor.getColumnIndex("city_id")));
-				countyList.add(county);
-			}
-		}
-		return countyList;
+		return areaList;
 	}
 }
