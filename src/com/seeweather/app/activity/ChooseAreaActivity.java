@@ -8,6 +8,7 @@ import java.util.List;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -33,25 +34,35 @@ public class ChooseAreaActivity extends Activity {
 	private String ADDRESS = "http://apis.baidu.com/apistore/weatherservice/citylist?cityname=";
 	private String searchArea;
 	private String url;
-	private List<Area> areaList;
 	private List<String> lists;
 	private ListView listView;
-	private TextView tvTitle;// 标题
-	private ListView list;// 列表
 	private EditText etInput;// 输入区域
-	private String cityId ;
+	private String cityId;
 
 	private Button btSearch;
 	private ArrayAdapter<String> adapter;
 	private SeeWeatherDB seeWeatherDB;// 获取数据库工具类
-	private ProgressDialog progressDialog;
+	private boolean isStartFormWeather;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		final SharedPreferences sp = getSharedPreferences("weather",
+				MODE_PRIVATE);
+		isStartFormWeather = getIntent().getBooleanExtra("isStartFromWeather", false);
+		if (sp.getBoolean("city_selected", false) && !isStartFormWeather) {
+			Intent intent = new Intent(ChooseAreaActivity.this,
+					WeatherActivity.class);
+			cityId = sp.getString("cityId", "0");
+			searchArea = sp.getString("cityName", "");
+			intent.putExtra("cityId", cityId);
+			intent.putExtra("cityName", searchArea);
+			startActivity(intent);
+			finish();
+			return;
+		}
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.choose_area);
-		tvTitle = (TextView) findViewById(R.id.title_text);
 		etInput = (EditText) findViewById(R.id.input);
 		btSearch = (Button) findViewById(R.id.search);
 		listView = (ListView) findViewById(R.id.list_view);
@@ -66,24 +77,25 @@ public class ChooseAreaActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				searchArea = etInput.getText().toString();
-				
 				if (!TextUtils.isEmpty(searchArea)) {
+					sp.edit().putString("cityName", searchArea);
 					List<Area> list2 = seeWeatherDB.loadAreasFromDB(searchArea);
-					if(list2.size() == 0){
+					if (list2.size() == 0) {
 						try {
-							url = ADDRESS + URLEncoder.encode(searchArea,"UTF-8");
+							url = ADDRESS
+									+ URLEncoder.encode(searchArea, "UTF-8");
 						} catch (UnsupportedEncodingException e) {
 							e.printStackTrace();
 						}
 						queryAreaFormServer(searchArea);
-						
 					}
 					list2 = seeWeatherDB.loadAreasFromDB(searchArea);
 					cityId = seeWeatherDB.getCityIdFromDb(searchArea);
+					sp.edit().putString("cityId", cityId);
 					lists.clear();
-					for(Area area : list2){
-						lists.add(area.toString());						
-					}						
+					for (Area area : list2) {
+						lists.add(area.toString());
+					}
 					adapter.notifyDataSetChanged();
 					listView.setSelection(0);
 					listView.setOnItemClickListener(new OnItemClickListener() {
@@ -91,9 +103,9 @@ public class ChooseAreaActivity extends Activity {
 						@Override
 						public void onItemClick(AdapterView<?> parent,
 								View view, int position, long id) {
-							Intent intent = new Intent(ChooseAreaActivity.this,WeatherActivity.class);
+							Intent intent = new Intent(ChooseAreaActivity.this,
+									WeatherActivity.class);
 							intent.putExtra("cityId", cityId);
-							intent.putExtra("cityName", searchArea);
 							startActivity(intent);
 						}
 					});
@@ -120,9 +132,9 @@ public class ChooseAreaActivity extends Activity {
 			@Override
 			public void onError(Exception e) {
 				runOnUiThread(new Runnable() {
-					
+
 					@Override
-					public void run() {	
+					public void run() {
 						Toast.makeText(ChooseAreaActivity.this, "加载失败",
 								Toast.LENGTH_SHORT).show();
 					}
@@ -131,4 +143,6 @@ public class ChooseAreaActivity extends Activity {
 		});
 
 	}
+	
+	
 }

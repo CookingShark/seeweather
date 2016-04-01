@@ -63,7 +63,9 @@ public  class Utility {
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy年M月d日", Locale.CHINA);
 		try {
 			JSONObject allInfo = new JSONObject(response);//获取服务器返回的json数据
-			JSONObject retData = allInfo.getJSONObject("retData");//获取retData组成的JSON数据			
+			JSONObject retData = allInfo.getJSONObject("retData");//获取retData组成的JSON数据
+			editor.putBoolean("city_selected", true);//已经有默认保存的城市
+			editor.putString("cityName", retData.getString("city"));
 			editor.putString("public_time", retData.getString("time"));//发布时间			
 			editor.putString("date", sdf.format(new Date()));//日期
 			editor.putString("weather", retData.getString("weather"));//天气情况
