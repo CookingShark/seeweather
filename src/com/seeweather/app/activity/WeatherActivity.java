@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import com.seeweather.app.R;
+import com.seeweather.app.receiver.AutoUpdateReceiver;
 import com.seeweather.app.util.HttpCallbackListener;
 import com.seeweather.app.util.HttpUtil;
 import com.seeweather.app.util.Utility;
@@ -97,6 +98,8 @@ public class WeatherActivity extends Activity implements OnClickListener {
 						weatherTemp.setText(sp.getString("temp", "null"));
 						weatherTempRange.setText(sp.getString("lTemp", "0")
 								+ "℃~" + sp.getString("hTemp", "0") + "℃");
+						Intent i = new Intent(WeatherActivity.this,AutoUpdateReceiver.class);//启动自动更新服务
+						startService(i);
 					}
 				});
 			}
